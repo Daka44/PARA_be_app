@@ -2,13 +2,20 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+from fastapi import APIRouter
+from app.utils import get_password_hash, verify_password
 from typing import Annotated
 import os
 from pymongo import MongoClient
 from bson.json_util import dumps
 from passlib.context import CryptContext
 
+
 app = FastAPI()
+
+router = APIRouter()
+
+
 
 load_dotenv()  # .env 파일 로드
 MONGODB_URI = os.getenv("MONGODB_URI")
@@ -19,13 +26,16 @@ print("Database connected!")
 
 
 
-# public 폴더를 static으로
-app.mount("/public", StaticFiles(directory="public"), name="public")
+# app 폴더를 static으로
+app.mount("/app", StaticFiles(directory="app"), name="app")
+
+
+
 
 # index.html 반환
 @app.get("/", response_class=HTMLResponse)
 def read_root():
-    return FileResponse("./public/index.html")
+    return FileResponse("./app/index.html")
 
 
 
@@ -55,7 +65,7 @@ response: {
 """
 
 
-@app.post("/signup")
+@router.post("/signup")
 def signup(id: str = Header(None), pw: str = Header(None)):
     print(f"Received id: {id}, pw: {pw}")
     if id is None or pw is None:
